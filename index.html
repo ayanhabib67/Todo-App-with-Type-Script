@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            transition: all 0.3s ease;
+        }
+
+        /* Alternative approach using descendant selector */
+        #darkModeToggle:checked ~ .app-wrapper {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        }
+
+        .app-wrapper {
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            transition: all 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 320px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+            border: 1px solid #e9ecef;
+        }
+
+        #darkModeToggle:checked ~ .container {
+            background: #2c3e50;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            color: white;
+            border: 1px solid #4a5568;
+        }
+
+        /* Dark Mode Toggle Switch */
+        .theme-toggle {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            z-index: 10;
+        }
+
+        .theme-toggle input {
+            display: none;
+        }
+
+        .toggle-label {
+            display: block;
+            width: 50px;
+            height: 25px;
+            background: #ddd;
+            border-radius: 12.5px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle-label::before {
+            content: '☀️';
+            position: absolute;
+            left: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-label::after {
+            content: '';
+            position: absolute;
+            width: 21px;
+            height: 21px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        #darkModeToggle:checked + .app-wrapper {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        }
+
+        #darkModeToggle:checked ~ .container .toggle-label {
+            background: #4a5568;
+        }
+
+        #darkModeToggle:checked ~ .container .toggle-label::before {
+            content: '🌙';
+            left: 6px;
+        }
+
+        #darkModeToggle:checked ~ .container .toggle-label::after {
+            left: 27px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-top: 15px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            transition: all 0.3s ease;
+        }
+
+        #darkModeToggle:checked ~ .container .header h1 {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        #darkModeToggle:checked ~ .container .header p {
+            color: #bbb;
+        }
+
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #todoInput {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        #darkModeToggle:checked ~ .container #todoInput {
+            background: #34495e;
+            border-color: #4a5568;
+            color: white;
+        }
+
+        #todoInput:focus {
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        #darkModeToggle:checked ~ .container #todoInput:focus {
+            background: #2c3e50;
+            border-color: #74b9ff;
+            box-shadow: 0 0 0 3px rgba(116, 185, 255, 0.2);
+        }
+
+        #todoInput::placeholder {
+            color: #adb5bd;
+            transition: all 0.3s ease;
+        }
+
+        #darkModeToggle:checked ~ .container #todoInput::placeholder {
+            color: #95a5a6;
+        }
+
+        #addBtn {
+            width: 100%;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #addBtn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        #addBtn:active {
+            transform: translateY(0);
+        }
+
+        #darkModeToggle:checked ~ .container #addBtn {
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+        }
+
+        #todoList {
+            min-height: 150px;
+        }
+
+        .todo-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: all 0.3s ease;
+            animation: slideIn 0.3s ease;
+        }
+
+        #darkModeToggle:checked ~ .container .todo-item {
+            background: #34495e;
+            border-color: #4a5568;
+            color: white;
+        }
+
+        .todo-item:hover {
+            background: #e9ecef;
+            transform: translateX(2px);
+        }
+
+        #darkModeToggle:checked ~ .container .todo-item:hover {
+            background: #4a5568;
+        }
+
+        .todo-text {
+            font-size: 14px;
+            color: #333;
+            word-wrap: break-word;
+            transition: all 0.3s ease;
+        }
+
+        #darkModeToggle:checked ~ .container .todo-text {
+            color: white;
+        }
+
+        .todo-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+
+        .btn-complete,
+        .btn-delete {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .btn-complete {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-complete:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+
+        .todo-item.completed {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        #darkModeToggle:checked ~ .container .todo-item.completed {
+            background: #1e3a2e;
+            border-color: #2d5a3d;
+        }
+
+        .todo-item.completed .todo-text {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        #darkModeToggle:checked ~ .container .todo-item.completed .todo-text {
+            color: #95a5a6;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 15px;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        #darkModeToggle:checked ~ .container .empty-state {
+            color: #95a5a6;
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+
+        .empty-state p {
+            font-size: 0.8rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Small Mobile Devices (320px and up) */
+        @media (min-width: 320px) {
+            body {
+                padding: 15px;
+            }
+            
+            .container {
+                max-width: 350px;
+                padding: 25px;
+                border-radius: 18px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .header p {
+                font-size: 1rem;
+            }
+            
+            #todoInput {
+                padding: 14px 18px;
+                font-size: 15px;
+            }
+            
+            #addBtn {
+                padding: 14px 22px;
+                font-size: 15px;
+            }
+        }
+
+        /* Large Mobile Devices (480px and up) */
+        @media (min-width: 480px) {
+            body {
+                padding: 20px;
+            }
+            
+            .container {
+                max-width: 420px;
+                padding: 30px;
+            }
+            
+            .input-container {
+                flex-direction: row;
+                gap: 12px;
+            }
+            
+            #todoInput {
+                flex: 1;
+                min-width: 200px;
+            }
+            
+            #addBtn {
+                width: auto;
+                min-width: 100px;
+            }
+            
+            .todo-item {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+            
+            .todo-text {
+                flex: 1;
+                margin-right: 15px;
+            }
+            
+            .todo-actions {
+                justify-content: flex-end;
+            }
+        }
+
+        /* Tablets (768px and up) */
+        @media (min-width: 768px) {
+            body {
+                padding: 30px;
+            }
+            
+            .container {
+                max-width: 500px;
+                padding: 40px;
+                border-radius: 20px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            }
+            
+            #darkModeToggle:checked ~ .container {
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            }
+            
+            .theme-toggle {
+                top: 20px;
+                right: 20px;
+            }
+            
+            .toggle-label {
+                width: 60px;
+                height: 30px;
+                border-radius: 15px;
+            }
+            
+            .toggle-label::before {
+                font-size: 16px;
+                left: 5px;
+            }
+            
+            .toggle-label::after {
+                width: 26px;
+                height: 26px;
+            }
+            
+            #darkModeToggle:checked ~ .container .toggle-label::before {
+                left: 8px;
+            }
+            
+            #darkModeToggle:checked ~ .container .toggle-label::after {
+                left: 32px;
+            }
+            
+            .header {
+                margin-bottom: 30px;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+                margin-bottom: 10px;
+            }
+            
+            .header p {
+                font-size: 1.1rem;
+            }
+            
+            .input-container {
+                margin-bottom: 30px;
+            }
+            
+            #todoInput {
+                padding: 16px 20px;
+                font-size: 16px;
+                border-radius: 12px;
+                min-width: 250px;
+            }
+            
+            #addBtn {
+                padding: 16px 24px;
+                font-size: 16px;
+                border-radius: 12px;
+                min-width: 120px;
+            }
+            
+            #todoList {
+                min-height: 200px;
+            }
+            
+            .todo-item {
+                padding: 16px 20px;
+                margin-bottom: 12px;
+                border-radius: 12px;
+            }
+            
+            .todo-text {
+                font-size: 16px;
+            }
+            
+            .btn-complete,
+            .btn-delete {
+                padding: 8px 12px;
+                font-size: 14px;
+                border-radius: 8px;
+            }
+            
+            .empty-state {
+                padding: 40px 20px;
+            }
+            
+            .empty-state svg {
+                width: 64px;
+                height: 64px;
+                margin-bottom: 16px;
+            }
+            
+            .empty-state h3 {
+                font-size: 1.2rem;
+                margin-bottom: 8px;
+            }
+            
+            .empty-state p {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Desktop (1024px and up) */
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 550px;
+                padding: 45px;
+            }
+            
+            .header h1 {
+                font-size: 2.8rem;
+            }
+            
+            .todo-item:hover {
+                transform: translateX(5px);
+            }
+        }
+
+        /* Large Desktop (1200px and up) */
+        @media (min-width: 1200px) {
+            .container {
+                max-width: 600px;
+                padding: 50px;
+            }
+        }
+
+        /* Landscape orientation adjustments */
+        @media (orientation: landscape) and (max-height: 500px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+            
+            .header {
+                margin-bottom: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.8rem;
+                margin-bottom: 5px;
+            }
+            
+            .input-container {
+                margin-bottom: 15px;
+            }
+            
+            .empty-state {
+                padding: 20px 15px;
+            }
+        }
+
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .container {
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            }
+            
+            #darkModeToggle:checked ~ .container {
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        /* Accessibility - Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: white !important;
+            }
+            
+            .app-wrapper {
+                background: white !important;
+            }
+            
+            .container {
+                box-shadow: none !important;
+                border: 1px solid #ccc !important;
+            }
+            
+            .theme-toggle {
+                display: none !important;
+            }
+            
+            .btn-complete,
+            .btn-delete {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <input type="checkbox" id="darkModeToggle" style="display: none;">
+    
+    <div class="app-wrapper"></div>
+    
+    <div class="container">
+        <div class="theme-toggle">
+            <label for="darkModeToggle" class="toggle-label" title="Toggle Dark Mode"></label>
+        </div>
+        
+        <div class="header">
+            <h1>Todo App</h1>
+            <p>Stay organized and get things done</p>
+        </div>
+        
+        <div class="input-container">
+            <input type="text" id="todoInput" placeholder="What needs to be done?">
+            <button id="addBtn">Add Todo</button>
+        </div>
+        
+        <div id="todoList">
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                </svg>
+                <h3>No todos yet</h3>
+                <p>Add your first todo item above to get started</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="./dist/index.js" type="module"></script>
+</body>
+</html>
